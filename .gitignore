@@ -1,6 +1,6 @@
-#web-files
+# web-files
 
-web-files/
-*.html
-*.jnlps
+web-files/*
+dist/*.html
+dist/*.jnlp
 
