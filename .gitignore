@@ -1,3 +1,6 @@
-# Folders
+#web-files
 
-dist/web-files/
+web-files/
+*.html
+*.jnlps
+
