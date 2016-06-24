@@ -1,0 +1,38 @@
+
+/**
+ *
+ * @author pr0mming
+ */
+
+.label {
+    -fx-border-color: white;
+    -fx-border-width: 0.5px;
+    -fx-background-color: black;
+}
+
+.stack-pane {
+    -fx-background-color: black;
+}
+
+.label-information {
+    -fx-border-color: black;
+    -fx-font: 15px monospace;
+    -fx-text-fill: white;
+}
+
+.button-start {
+    -fx-border-width: 2px;
+    -fx-font: 15px monospace;
+    -fx-border-color: white;
+    -fx-border-radius: 10 10 10 10;
+    -fx-background-radius: 10 10 10 10;
+    -fx-text-fill: white;
+    -fx-background-color: black;
+}
+
+.button-start:hover {
+    -fx-border-color: green;
+    -fx-text-fill: black;
+    -fx-background-color: white;
+}
+
