@@ -2,7 +2,12 @@
 /**
  *
  * @author pr0mming
+ * 
+ * How few simple rules can determine such complex things?
+ * 
+ * GitHub: https://github.com/pr0mming
  */
+
 
 .label {
     -fx-border-color: white;
@@ -20,7 +25,7 @@
     -fx-text-fill: white;
 }
 
-.button-start {
+.button {
     -fx-border-width: 2px;
     -fx-font: 15px monospace;
     -fx-border-color: white;
