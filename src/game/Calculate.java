@@ -86,8 +86,30 @@ public class Calculate {
         "r" is a variable that evaluates whether the block is dead the population is 
         subtracted or otherwise adds. This has more to do in the event that the game itself ...
     */
-    public void setPopulation(boolean r) {
+    public void PopulationIncrease(boolean r) {
         Population += (r)?1:-1;
+    }
+    
+    public void PopulationRestore() {
+        Population = 0l;
+    }
+    //Clean the grid
+    public Label[][] RestoreGrid(Label[][] l){
+        if (Population > 0) {
+            for (int i = 0, c = 0; i < l.length && c < Population; i++) {
+                for (int j = 0; j < l[i].length && c < Population; j++) {
+                    if (getColorLabel(l[i][j].getStyle()).equals(ColorLife)) {
+                        c++;
+                        l[i][j].setStyle("-fx-background-color: "+this.ColorDeath+";");
+                    }
+                }
+            }
+        }
+        return l;
+    }
+    
+    public void RedefineReplic(int rows, int cols) {
+        this.Replic = new int[rows+2][cols+2];
     }
     
     public String getPopulation() {

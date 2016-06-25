@@ -1,6 +1,6 @@
 # web-files
 
-web-files/*
+dist/web-files/*
 dist/*.html
 dist/*.jnlp
 

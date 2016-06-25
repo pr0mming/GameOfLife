@@ -15,7 +15,7 @@
     -fx-background-color: black;
 }
 
-.stack-pane {
+.border-pane {
     -fx-background-color: black;
 }
 
@@ -27,7 +27,7 @@
 
 .button {
     -fx-border-width: 2px;
-    -fx-font: 15px monospace;
+    -fx-font: 13px monospace;
     -fx-border-color: white;
     -fx-border-radius: 10 10 10 10;
     -fx-background-radius: 10 10 10 10;
@@ -35,7 +35,7 @@
     -fx-background-color: black;
 }
 
-.button-start:hover {
+.button:hover {
     -fx-border-color: green;
     -fx-text-fill: black;
     -fx-background-color: white;
