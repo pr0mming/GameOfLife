@@ -4,3 +4,7 @@ dist/web-files/*
 dist/*.html
 dist/*.jnlp
 
+# nb
+
+nbproject/private/*
+build/built-jar.properties
