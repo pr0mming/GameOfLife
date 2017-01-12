@@ -32,38 +32,38 @@ import javafx.util.Duration;
 
 public class Game extends Application{
 
-    private BorderPane Root;
-    private GridPane Grid;
-    private Label[][] Flat;
-    private Calculate Calc;
-    private Button ButtonStart, ButtonPause, ButtonStep, ButtonRestore;
-    private String ColorLife, ColorDeath;
-    private Label Generation, Population;
-    private long Generation_Number;
-    private Timeline Animation;
-    private HBox BoxTop, BoxBottom;
-    private ComboBox<String> Combo;
+    private BorderPane root;
+    private GridPane grid;
+    private Label[][] labelGrid;
+    private Calculate calc;
+    private Button buttonStart, buttonPause, buttonStep, buttonRestore;
+    private String colorLife, colorDeath;
+    private Label labelGeneration, labelPopulation;
+    private long generation;
+    private Timeline animation;
+    private HBox boxTop, boxBottom;
+    private ComboBox<String> comboBox;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
         
-        Root = new BorderPane();
-        Root.getStylesheets().addAll(getClass().getResource("StyleGame.css").toExternalForm());
-        ColorLife = "#39E600";
-        ColorDeath = "#1A1A00";
+        root = new BorderPane();
+        root.getStylesheets().addAll(getClass().getResource("StyleGame.css").toExternalForm());
+        colorLife = "#39E600";
+        colorDeath = "#1A1A00";
         
-        DefineLabels(60, 40);              
-        DefineAnimation();      
-        Calc = new Calculate(ColorDeath, ColorLife, Flat.length, Flat[0].length);      
-        DefineButton(); 
-        DefineComboBox();
+        defineLabels(60, 30);              
+        defineAnimation();      
+        calc = new Calculate(colorDeath, colorLife, labelGrid.length, labelGrid[0].length);      
+        defineButtons(); 
+        defineComboBox();
         
-        Root.setTop(BoxTop);
-        Root.setCenter(Grid);
-        Root.setBottom(BoxBottom);
-        Root.getStyleClass().add("border-pane");
+        root.setTop(boxTop);
+        root.setCenter(grid);
+        root.setBottom(boxBottom);
+        root.getStyleClass().add("border-pane");
                
-        Scene scene = new Scene(Root, 1050, 890);
+        Scene scene = new Scene(root, 1050, 890);
         
         primaryStage.setTitle("Game of Life");
         primaryStage.setScene(scene);      
@@ -72,25 +72,25 @@ public class Game extends Application{
         primaryStage.show();         
     }
     
-    private void DefineButton() {
-        BoxTop = new HBox();
-        BoxTop.setPadding(new Insets(30, 10, 10, 10));
-        BoxTop.setSpacing(15);
-        BoxTop.setAlignment(Pos.CENTER);
-        BoxTop.setStyle("-fx-background-color: black;");
+    private void defineButtons() {
+        boxTop = new HBox();
+        boxTop.setPadding(new Insets(30, 10, 10, 10));
+        boxTop.setSpacing(15);
+        boxTop.setAlignment(Pos.CENTER);
+        boxTop.setStyle("-fx-background-color: black;");
         
-        ButtonStart = new Button("Start Game");
-        ButtonStart.setPrefSize(145, 40);
-        ButtonStart.getStyleClass().add("button");
-        ButtonStart.setOnAction(new EventHandler<ActionEvent>() {
+        buttonStart = new Button("Start Game");
+        buttonStart.setPrefSize(145, 40);
+        buttonStart.getStyleClass().add("button");
+        buttonStart.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                if (Integer.valueOf(Calc.getPopulation()) > 0) {
-                    Animation.play();
+                if (Integer.valueOf(calc.getPopulation()) > 0) {
+                    animation.play();
                     ((Button)e.getSource()).setDisable(true);
-                    ButtonPause.setDisable(false);
-                    ButtonStep.setDisable(true);
-                    ButtonRestore.setDisable(true);
+                    buttonPause.setDisable(false);
+                    buttonStep.setDisable(true);
+                    buttonRestore.setDisable(true);
                 } else {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("The grid is empty");
@@ -101,84 +101,84 @@ public class Game extends Application{
             }
         });
         
-        ButtonPause = new Button("Pause");
-        ButtonPause.setDisable(true);
-        ButtonPause.setPrefSize(145, 40);
-        ButtonPause.getStyleClass().add("button");
-        ButtonPause.setOnAction(new EventHandler<ActionEvent>() {
+        buttonPause = new Button("Pause");
+        buttonPause.setDisable(true);
+        buttonPause.setPrefSize(145, 40);
+        buttonPause.getStyleClass().add("button");
+        buttonPause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                Animation.stop();
+                animation.stop();
                 ((Button) event.getSource()).setDisable(true);
-                ButtonStep.setDisable(false);
-                ButtonStart.setDisable(false);
-                ButtonRestore.setDisable(false);
+                buttonStep.setDisable(false);
+                buttonStart.setDisable(false);
+                buttonRestore.setDisable(false);
             }
         });
         
-        ButtonStep = new Button("Step by step");
-        ButtonStep.setDisable(true);
-        ButtonStep.setPrefSize(145, 40);
-        ButtonStep.getStyleClass().add("button");
-        ButtonStep.setOnAction(new EventHandler<ActionEvent>() {
+        buttonStep = new Button("Step by step");
+        buttonStep.setDisable(true);
+        buttonStep.setPrefSize(145, 40);
+        buttonStep.getStyleClass().add("button");
+        buttonStep.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                Flat = Calc.GeneratePattern(Flat);
+                labelGrid = calc.generatePattern(labelGrid);
             }
         });
         
-        ButtonRestore = new Button("Restore");
-        ButtonRestore.setDisable(false);
-        ButtonRestore.setPrefSize(145, 40);
-        ButtonRestore.getStyleClass().add("button");
-        ButtonRestore.setOnAction(new EventHandler<ActionEvent>() {
+        buttonRestore = new Button("Restore");
+        buttonRestore.setDisable(false);
+        buttonRestore.setPrefSize(145, 40);
+        buttonRestore.getStyleClass().add("button");
+        buttonRestore.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {               
-                Flat = Calc.RestoreGrid(Flat);
-                Generation_Number = 0l;
-                Calc.PopulationRestore();
-                Generation.setText("Generation "+Generation_Number);
-                Population.setText("Population "+Calc.getPopulation());
-                ButtonStep.setDisable(true);
+                labelGrid = calc.restoreGrid(labelGrid);
+                generation = 0l;
+                calc.restorePopulation();
+                labelGeneration.setText("Generation "+generation);
+                labelPopulation.setText("Population "+calc.getPopulation());
+                buttonStep.setDisable(true);
                 ((Button)event.getSource()).setDisable(true);
             }
         });
         
-        Generation_Number = 0l;
-        Generation = new Label("Generation "+Generation_Number);
-        Generation.setPrefSize(150, 40);
-        Generation.getStyleClass().add("label-information");
-        Population = new Label("Population "+Calc.getPopulation());
-        Population.setPrefSize(160, 40);
-        Population.getStyleClass().add("label-information");       
+        generation = 0l;
+        labelGeneration = new Label("Generation "+generation);
+        labelGeneration.setPrefSize(150, 40);
+        labelGeneration.getStyleClass().add("label-information");
+        labelPopulation = new Label("Population "+calc.getPopulation());
+        labelPopulation.setPrefSize(160, 40);
+        labelPopulation.getStyleClass().add("label-information");       
         
-        BoxTop.getChildren().addAll(ButtonStart, ButtonPause, ButtonStep, ButtonRestore, Generation, Population);
+        boxTop.getChildren().addAll(buttonStart, buttonPause, buttonStep, buttonRestore, labelGeneration, labelPopulation);
     }
     
-    private void DefineAnimation() {
-        Animation = new Timeline(new KeyFrame(Duration.millis(70), new EventHandler<ActionEvent>() {
+    private void defineAnimation() {
+        animation = new Timeline(new KeyFrame(Duration.millis(70), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                Flat = Calc.GeneratePattern(Flat);
-                Generation_Number+=1;
-                Generation.setText("Generation "+Generation_Number);
-                Population.setText("Population "+Calc.getPopulation());
+                labelGrid = calc.generatePattern(labelGrid);
+                generation+=1;
+                labelGeneration.setText("Generation "+generation);
+                labelPopulation.setText("Population "+calc.getPopulation());
             }
         }));
         
-        Animation.setCycleCount(Animation.INDEFINITE);
+        animation.setCycleCount(animation.INDEFINITE);
     }
     
-    private void DefineComboBox() {
-        BoxBottom = new HBox();
-        BoxBottom.setPadding(new Insets(10, 10, 20, 10));
-        BoxBottom.setSpacing(10);
-        BoxBottom.setAlignment(Pos.BOTTOM_CENTER);
-        BoxBottom.setStyle("-fx-background-color: black;");
+    private void defineComboBox() {
+        boxBottom = new HBox();
+        boxBottom.setPadding(new Insets(10, 10, 20, 10));
+        boxBottom.setSpacing(10);
+        boxBottom.setAlignment(Pos.BOTTOM_CENTER);
+        boxBottom.setStyle("-fx-background-color: black;");
         
-        Combo = new ComboBox<String>();
-        Combo.getItems().addAll("60x40", "55x35", "50x30", "45x25", "40x20", "35x20");      
-        Combo.setValue("60x40");
+        comboBox = new ComboBox<String>();
+        comboBox.getItems().addAll("60x30", "55x30", "50x25", "45x25", "40x20", "35x20");      
+        comboBox.setValue("60x30");
         
         Label LabelDefineGrid = new Label("Redefine Grid: ");
         LabelDefineGrid.getStyleClass().add("label-information");
@@ -189,42 +189,42 @@ public class Game extends Application{
         AceptChanges.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {               
-                Root.getChildren().remove(Grid);
-                String[] coordinates = Combo.getValue().split("x");
-                DefineLabels(Integer.valueOf(coordinates[0]), Integer.valueOf(coordinates[1]));
-                Calc.RedefineReplic(Flat.length, Flat[0].length);
-                Root.setCenter(Grid);
+                root.getChildren().remove(grid);
+                String[] coordinates = comboBox.getValue().split("x");
+                defineLabels(Integer.valueOf(coordinates[0]), Integer.valueOf(coordinates[1]));
+                calc.redefineReplic(labelGrid.length, labelGrid[0].length);
+                root.setCenter(grid);
             }
         });
         
-        BoxBottom.getChildren().addAll(LabelDefineGrid, Combo, AceptChanges);
+        boxBottom.getChildren().addAll(LabelDefineGrid, comboBox, AceptChanges);
     }
     
-    private void DefineLabels(int rows, int cols) {             
+    private void defineLabels(int rows, int cols) {             
         
-        Grid = new GridPane();
-        Grid.setPadding(new Insets(5, 20, 5, 20));
-        Grid.setAlignment(Pos.CENTER);
-        Grid.setHgap(0);
-        Grid.setVgap(0); 
+        grid = new GridPane();
+        grid.setPadding(new Insets(5, 20, 5, 20));
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(0);
+        grid.setVgap(0); 
         
-        Flat = new Label[rows][cols];
-        for (int i = 0; i < Flat.length; i++) {
-            for (int j = 0; j < Flat[i].length; j++) {
-                Flat[i][j] = new Label();
-                Flat[i][j].getStyleClass().add("label");
-                Flat[i][j].setStyle("-fx-background-color: "+ColorDeath+";");
-                Flat[i][j].setPrefSize(16, 16);
-                Flat[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
+        labelGrid = new Label[rows][cols];
+        for (int i = 0; i < labelGrid.length; i++) {
+            for (int j = 0; j < labelGrid[i].length; j++) {
+                labelGrid[i][j] = new Label();
+                labelGrid[i][j].getStyleClass().add("label");
+                labelGrid[i][j].setStyle("-fx-background-color: "+colorDeath+";");
+                labelGrid[i][j].setPrefSize(15, 15);
+                labelGrid[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent event) {
-                        boolean status = Calc.getColorLabel(((Label)event.getSource()).getStyle()).equals(ColorDeath);
-                        ((Label)event.getSource()).setStyle("-fx-background-color: "+((status)?ColorLife:ColorDeath)+";");
-                        Calc.PopulationIncrease(status);
-                        Population.setText("Population "+Calc.getPopulation());
+                        boolean status = calc.getColorLabel(((Label)event.getSource()).getStyle()).equals(colorDeath);
+                        ((Label)event.getSource()).setStyle("-fx-background-color: "+((status)?colorLife:colorDeath)+";");
+                        calc.changePopulation(status);
+                        labelPopulation.setText("Population "+calc.getPopulation());
                     }
                 });
-                Grid.add(Flat[i][j], i, j);
+                grid.add(labelGrid[i][j], i, j);
             }
         }     
     }

@@ -15,15 +15,15 @@ import javafx.scene.control.Label;
 
 public class Calculate {
     
-    private int[][] Replic;
-    private String ColorDeath, ColorLife;
-    private long Population;
+    private int[][] replic;
+    private String colorDeath, colorLife;
+    private long population;
     
     public Calculate(String ColorDeath, String ColorLife, int rows, int cols) {       
-        this.ColorLife = ColorLife;
-        this.ColorDeath = ColorDeath;
+        this.colorLife = ColorLife;
+        this.colorDeath = ColorDeath;
         //This variable is initialized by adding 2 rows and 2 columns, thus the edges are not ignored
-        this.Replic = new int[rows+2][cols+2];
+        this.replic = new int[rows+2][cols+2];
     }
     /*        
         1 = cell alive
@@ -33,19 +33,19 @@ public class Calculate {
         array is recreated Labels. The first problem I had was to ignore the 
         calculation of the edges, this is a solution to this problem.
     */
-    private void GenerateReplic(Label[][] l) {
-        for (int i = 0; i < Replic.length; i++) 
-            for (int j = 0; j < Replic[i].length; j++) 
-                if (i > 0 && i < Replic.length-1 && j > 0 && j < Replic[i].length-1) 
-                    Replic[i][j] = ((getColorLabel(l[i-1][j-1].getStyle())).equals(ColorLife)?1:0);
+    private void generateReplic(Label[][] l) {
+        for (int i = 0; i < replic.length; i++) 
+            for (int j = 0; j < replic[i].length; j++) 
+                if (i > 0 && i < replic.length-1 && j > 0 && j < replic[i].length-1) 
+                    replic[i][j] = ((getColorLabel(l[i-1][j-1].getStyle())).equals(colorLife)?1:0);
                             
     }
     //This method returns the new pattern.
-    public Label[][] GeneratePattern(Label[][] label) {
-        GenerateReplic(label);
-        for (int i = 1; i < Replic.length-1; i++) 
-            for (int j = 1; j < Replic[i].length-1; j++) 
-                EvaluateCell(i, j, Replic, label);              
+    public Label[][] generatePattern(Label[][] label) {
+        generateReplic(label);
+        for (int i = 1; i < replic.length-1; i++) 
+            for (int j = 1; j < replic[i].length-1; j++) 
+                evaluateCell(i, j, replic, label);              
                    
         return label;
     }
@@ -54,7 +54,7 @@ public class Calculate {
         From the counter it is determined whether the block is still alive, 
         dies or not their status is altered ...
     */
-    private void EvaluateCell(int row, int col, int[][] replic, Label[][] label) {
+    private void evaluateCell(int row, int col, int[][] replic, Label[][] label) {
         int count = 0;
         for (int i = row-1; i < (row+2); i++) 
             for (int j = col-1; j < (col+2); j++) 
@@ -62,12 +62,12 @@ public class Calculate {
                     count+=1;             
         
         if ((count < 2 && replic[row][col] == 1) || (count > 3 && replic[row][col] == 1)) {
-            Population-=1;
-            label[row-1][col-1].setStyle("-fx-background-color: "+this.ColorDeath+";");
+            population-=1;
+            label[row-1][col-1].setStyle("-fx-background-color: "+this.colorDeath+";");
         } else 
             if (count == 3 && replic[row][col] == 0) {
-                Population+=1;
-                label[row-1][col-1].setStyle("-fx-background-color: "+this.ColorLife+";");                
+                population+=1;
+                label[row-1][col-1].setStyle("-fx-background-color: "+this.colorLife+";");                
             }
     }
     /*       
@@ -86,21 +86,21 @@ public class Calculate {
         "r" is a variable that evaluates whether the block is dead the population is 
         subtracted or otherwise adds. This has more to do in the event that the game itself ...
     */
-    public void PopulationIncrease(boolean r) {
-        Population += (r)?1:-1;
+    public void changePopulation(boolean r) {
+        population += (r) ? 1 : -1;
     }
     
-    public void PopulationRestore() {
-        Population = 0l;
+    public void restorePopulation() {
+        population = 0l;
     }
     //Clean the grid
-    public Label[][] RestoreGrid(Label[][] l){
-        if (Population > 0) {
-            for (int i = 0, c = 0; i < l.length && c < Population; i++) {
-                for (int j = 0; j < l[i].length && c < Population; j++) {
-                    if (getColorLabel(l[i][j].getStyle()).equals(ColorLife)) {
+    public Label[][] restoreGrid(Label[][] l){
+        if (population > 0) {
+            for (int i = 0, c = 0; i < l.length && c < population; i++) {
+                for (int j = 0; j < l[i].length && c < population; j++) {
+                    if (getColorLabel(l[i][j].getStyle()).equals(colorLife)) {
                         c++;
-                        l[i][j].setStyle("-fx-background-color: "+this.ColorDeath+";");
+                        l[i][j].setStyle("-fx-background-color: "+this.colorDeath+";");
                     }
                 }
             }
@@ -108,11 +108,11 @@ public class Calculate {
         return l;
     }
     
-    public void RedefineReplic(int rows, int cols) {
-        this.Replic = new int[rows+2][cols+2];
+    public void redefineReplic(int rows, int cols) {
+        this.replic = new int[rows+2][cols+2];
     }
     
     public String getPopulation() {
-        return String.valueOf(Population);
+        return String.valueOf(population);
     }
 }
