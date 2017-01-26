@@ -85,7 +85,7 @@ public class Game extends Application{
         boxTop.setStyle("-fx-background-color: black;");
         
         buttonStart = new Button("Start Game");
-        buttonStart.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
+        buttonStart.setPrefSize(145, 40);
         buttonStart.getStyleClass().add("button");
         buttonStart.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -110,7 +110,7 @@ public class Game extends Application{
         
         buttonPause = new Button("Pause");
         buttonPause.setDisable(true);
-        buttonPause.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
+        buttonPause.setPrefSize(145, 40);
         buttonPause.getStyleClass().add("button");
         buttonPause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -125,7 +125,7 @@ public class Game extends Application{
         
         buttonStep = new Button("Step by step");
         buttonStep.setDisable(false);
-        buttonStep.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
+        buttonStep.setPrefSize(145, 40);
         buttonStep.getStyleClass().add("button");
         buttonStep.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -143,7 +143,7 @@ public class Game extends Application{
         
         buttonRestore = new Button("Restore");
         buttonRestore.setDisable(false);
-        buttonRestore.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
+        buttonRestore.setPrefSize(145, 40);
         buttonRestore.getStyleClass().add("button");
         buttonRestore.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -160,9 +160,11 @@ public class Game extends Application{
         });
         
         labelGeneration = new Label("Generation "+calculator.getGeneration());
+        labelGeneration.setPrefSize(150, 40);
         labelGeneration.getStyleClass().add("label-information");
         
         labelPopulation = new Label("Population "+calculator.getPopulation());
+        labelPopulation.setPrefSize(150, 40);
         labelPopulation.getStyleClass().add("label-information");       
         
         boxTop.getChildren().addAll(buttonStart, buttonPause, buttonStep, buttonRestore, labelGeneration, labelPopulation);
@@ -182,7 +184,7 @@ public class Game extends Application{
         
         buttonRedefine = new Button("Redefine");
         buttonRedefine.getStyleClass().add("button");
-        buttonRedefine.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
+        buttonRedefine.setPrefSize(145, 40);
         buttonRedefine.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {   

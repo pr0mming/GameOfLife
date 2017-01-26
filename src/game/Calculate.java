@@ -86,7 +86,7 @@ public class Calculate {
     }
     
     //Clean the grid
-    public void restoreMatrix(){
+    public void restoreMatrix() {
         if (population > 0) {
             for (int i = 0, c = 0; i < matrix.length && c < population; i++) 
                 for (int j = 0; j < matrix[i].length && c < population; j++) 
@@ -130,4 +130,5 @@ public class Calculate {
     public void setPopulation(long x) {
         population = x;
     }
+    
 }
