@@ -11,8 +11,6 @@ import javafx.scene.control.Label;
  * 
  * GitHub: https://github.com/pr0mming
  */
-
-
 public class Calculate {
     
     private int[][] replic;
@@ -100,8 +98,9 @@ public class Calculate {
         }
     }
     
-    public void redefineReplic(int rows, int cols) {
-        this.replic = new int[rows+2][cols+2];
+    public void redefineReplic(Label[][] matrix) {
+        this.matrix = matrix;
+        this.replic = new int[matrix.length + 2][matrix[0].length + 2];
     }
     
     /*        

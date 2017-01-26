@@ -9,9 +9,9 @@
  */
 
 
-.label {
+.classic-label {
     -fx-border-color: white;
-    -fx-border-width: 0.5px;
+    -fx-border-width: 0.3px;
     -fx-background-color: black;
 }
 

@@ -31,10 +31,8 @@ import javafx.util.Duration;
  * 
  * GitHub: https://github.com/pr0mming
  */
-
 public class Game extends Application{
 
-    private BorderPane root;
     private GridPane gridPaneMatrix;
     private Label[][] matrix;
     private Calculate calculator;
@@ -53,11 +51,12 @@ public class Game extends Application{
         colorLife = "#39E600";
         colorDeath = "#1A1A00";
         
-        root = new BorderPane();
+        BorderPane root = new BorderPane();
         root.getStylesheets().addAll(getClass().getResource("StyleGame.css").toExternalForm());
         
         //Matrix
         gridPaneMatrix = new GridPane();
+        gridPaneMatrix.setPrefSize(primaryScreenBounds.getWidth() * 0.60, primaryScreenBounds.getHeight() * 0.75);
         gridPaneMatrix.setPadding(new Insets(5, 20, 5, 20));
         gridPaneMatrix.setAlignment(Pos.CENTER);
         
@@ -175,7 +174,7 @@ public class Game extends Application{
         boxBottom.setStyle("-fx-background-color: black;");
         
         comboBox = new ComboBox<>();
-        comboBox.getItems().addAll("60x30", "55x30", "50x25", "45x25", "40x20", "35x20");      
+        comboBox.getItems().addAll("80x40", "70x35", "60x30", "50x25", "40x20");      
         comboBox.setValue("60x30");
         
         Label LabelDefineGrid = new Label("Redefine Grid: ");
@@ -186,11 +185,12 @@ public class Game extends Application{
         buttonRedefine.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
         buttonRedefine.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
-            public void handle(MouseEvent event) {               
+            public void handle(MouseEvent event) {   
                 gridPaneMatrix.getChildren().clear();
                 String[] coordinates = comboBox.getValue().split("x");
+                
                 defineMatrix(Integer.valueOf(coordinates[0]), Integer.valueOf(coordinates[1]));
-                calculator.redefineReplic(matrix.length, matrix[0].length);
+                calculator.redefineReplic(matrix);
                 root.setCenter(gridPaneMatrix);
             }
         });
@@ -217,11 +217,15 @@ public class Game extends Application{
         
         for (int i = 0; i < matrix.length; i++) 
             for (int j = 0; j < matrix[i].length; j++) {
+                
                 matrix[i][j] = new Label();
                 matrix[i][j].setAccessibleHelp(i+","+j);
-                matrix[i][j].getStyleClass().add("label");
+                matrix[i][j].getStyleClass().add("classic-label");
                 matrix[i][j].setStyle("-fx-background-color: "+colorDeath+";");
-                matrix[i][j].setPrefSize(primaryScreenBounds.getWidth() * 0.0081, primaryScreenBounds.getHeight() * 0.017);
+                matrix[i][j].setMinWidth(primaryScreenBounds.getWidth() * 0.0070);
+                matrix[i][j].setMinHeight(primaryScreenBounds.getWidth() * 0.01);
+                matrix[i][j].setMaxWidth(primaryScreenBounds.getWidth() * 0.0090);
+                matrix[i][j].setMaxHeight(primaryScreenBounds.getWidth() * 0.001);
                 matrix[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent event) {
@@ -235,6 +239,7 @@ public class Game extends Application{
                 });
                 
                 gridPaneMatrix.add(matrix[i][j], i, j);
+                
             }
     }
     
