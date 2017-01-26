@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -19,6 +20,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Screen;
 import javafx.util.Duration;
 
 /**
@@ -33,64 +35,70 @@ import javafx.util.Duration;
 public class Game extends Application{
 
     private BorderPane root;
-    private GridPane grid;
-    private Label[][] labelGrid;
-    private Calculate calc;
-    private Button buttonStart, buttonPause, buttonStep, buttonRestore;
+    private GridPane gridPaneMatrix;
+    private Label[][] matrix;
+    private Calculate calculator;
+    private Button buttonStart, buttonPause, buttonStep, buttonRestore, buttonRedefine;
     private String colorLife, colorDeath;
     private Label labelGeneration, labelPopulation;
-    private long generation;
     private Timeline animation;
-    private HBox boxTop, boxBottom;
     private ComboBox<String> comboBox;
+    private Rectangle2D primaryScreenBounds;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
         
-        root = new BorderPane();
-        root.getStylesheets().addAll(getClass().getResource("StyleGame.css").toExternalForm());
+        primaryScreenBounds = Screen.getPrimary().getVisualBounds();   
+        
         colorLife = "#39E600";
         colorDeath = "#1A1A00";
         
-        defineLabels(60, 30);              
-        defineAnimation();      
-        calc = new Calculate(colorDeath, colorLife, labelGrid.length, labelGrid[0].length);      
-        defineButtons(); 
-        defineComboBox();
+        root = new BorderPane();
+        root.getStylesheets().addAll(getClass().getResource("StyleGame.css").toExternalForm());
         
-        root.setTop(boxTop);
-        root.setCenter(grid);
-        root.setBottom(boxBottom);
-        root.getStyleClass().add("border-pane");
-               
-        Scene scene = new Scene(root, 1050, 890);
+        //Matrix
+        gridPaneMatrix = new GridPane();
+        gridPaneMatrix.setPadding(new Insets(5, 20, 5, 20));
+        gridPaneMatrix.setAlignment(Pos.CENTER);
         
-        primaryStage.setTitle("Game of Life");
-        primaryStage.setScene(scene);      
-        primaryStage.centerOnScreen();
-        primaryStage.getIcons().addAll(new Image(getClass().getResourceAsStream("/resources/icon.png")));
-        primaryStage.show();         
-    }
-    
-    private void defineButtons() {
-        boxTop = new HBox();
+        defineMatrix(60, 30);
+        
+        //Animation
+        animation = new Timeline(new KeyFrame(Duration.millis(70), new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                calculator.createPattern();
+                calculator.increaseGeneration(1);
+                updateGeneration();
+                updatePopulation();
+            }
+        }));
+        
+        animation.setCycleCount(Timeline.INDEFINITE);
+        
+        calculator = new Calculate(matrix, colorDeath, colorLife);      
+        
+        //Buttons
+        HBox boxTop = new HBox();
         boxTop.setPadding(new Insets(30, 10, 10, 10));
         boxTop.setSpacing(15);
         boxTop.setAlignment(Pos.CENTER);
         boxTop.setStyle("-fx-background-color: black;");
         
         buttonStart = new Button("Start Game");
-        buttonStart.setPrefSize(145, 40);
+        buttonStart.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
         buttonStart.getStyleClass().add("button");
         buttonStart.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                if (Integer.valueOf(calc.getPopulation()) > 0) {
+                if (Integer.valueOf(calculator.getPopulation()) > 0) {
                     animation.play();
                     ((Button)e.getSource()).setDisable(true);
                     buttonPause.setDisable(false);
                     buttonStep.setDisable(true);
                     buttonRestore.setDisable(true);
+                    buttonRedefine.setDisable(true);
+                    comboBox.setDisable(true);
                 } else {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("The grid is empty");
@@ -103,7 +111,7 @@ public class Game extends Application{
         
         buttonPause = new Button("Pause");
         buttonPause.setDisable(true);
-        buttonPause.setPrefSize(145, 40);
+        buttonPause.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
         buttonPause.getStyleClass().add("button");
         buttonPause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -117,116 +125,125 @@ public class Game extends Application{
         });
         
         buttonStep = new Button("Step by step");
-        buttonStep.setDisable(true);
-        buttonStep.setPrefSize(145, 40);
+        buttonStep.setDisable(false);
+        buttonStep.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
         buttonStep.getStyleClass().add("button");
         buttonStep.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                labelGrid = calc.generatePattern(labelGrid);
+                if (Integer.valueOf(calculator.getPopulation()) > 0) calculator.createPattern();
+                else {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("The grid is empty");
+                    alert.setHeaderText(null);
+                    alert.setContentText("The game starts at least one living cell");
+                    alert.showAndWait();
+                }
             }
         });
         
         buttonRestore = new Button("Restore");
         buttonRestore.setDisable(false);
-        buttonRestore.setPrefSize(145, 40);
+        buttonRestore.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
         buttonRestore.getStyleClass().add("button");
         buttonRestore.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {               
-                labelGrid = calc.restoreGrid(labelGrid);
-                generation = 0l;
-                calc.restorePopulation();
-                labelGeneration.setText("Generation "+generation);
-                labelPopulation.setText("Population "+calc.getPopulation());
-                buttonStep.setDisable(true);
+                calculator.restoreMatrix();
+                calculator.setGeneration(0l);
+                calculator.setPopulation(0l);
+                updateGeneration();
+                updatePopulation();
+                buttonRedefine.setDisable(false);
+                comboBox.setDisable(false);
                 ((Button)event.getSource()).setDisable(true);
             }
         });
         
-        generation = 0l;
-        labelGeneration = new Label("Generation "+generation);
-        labelGeneration.setPrefSize(150, 40);
+        labelGeneration = new Label("Generation "+calculator.getGeneration());
         labelGeneration.getStyleClass().add("label-information");
-        labelPopulation = new Label("Population "+calc.getPopulation());
-        labelPopulation.setPrefSize(160, 40);
+        
+        labelPopulation = new Label("Population "+calculator.getPopulation());
         labelPopulation.getStyleClass().add("label-information");       
         
         boxTop.getChildren().addAll(buttonStart, buttonPause, buttonStep, buttonRestore, labelGeneration, labelPopulation);
-    }
-    
-    private void defineAnimation() {
-        animation = new Timeline(new KeyFrame(Duration.millis(70), new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                labelGrid = calc.generatePattern(labelGrid);
-                generation+=1;
-                labelGeneration.setText("Generation "+generation);
-                labelPopulation.setText("Population "+calc.getPopulation());
-            }
-        }));
         
-        animation.setCycleCount(animation.INDEFINITE);
-    }
-    
-    private void defineComboBox() {
-        boxBottom = new HBox();
-        boxBottom.setPadding(new Insets(10, 10, 20, 10));
+        HBox boxBottom = new HBox();
+        boxBottom.setPadding(new Insets(10, 10, 50, 10));
         boxBottom.setSpacing(10);
         boxBottom.setAlignment(Pos.BOTTOM_CENTER);
         boxBottom.setStyle("-fx-background-color: black;");
         
-        comboBox = new ComboBox<String>();
+        comboBox = new ComboBox<>();
         comboBox.getItems().addAll("60x30", "55x30", "50x25", "45x25", "40x20", "35x20");      
         comboBox.setValue("60x30");
         
         Label LabelDefineGrid = new Label("Redefine Grid: ");
         LabelDefineGrid.getStyleClass().add("label-information");
         
-        Button AceptChanges = new Button("Redefine");
-        AceptChanges.getStyleClass().add("button");
-        AceptChanges.setPrefSize(140, 40);
-        AceptChanges.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        buttonRedefine = new Button("Redefine");
+        buttonRedefine.getStyleClass().add("button");
+        buttonRedefine.setPrefSize((primaryScreenBounds.getWidth() * 0.077), (primaryScreenBounds.getWidth() * 0.021));
+        buttonRedefine.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {               
-                root.getChildren().remove(grid);
+                gridPaneMatrix.getChildren().clear();
                 String[] coordinates = comboBox.getValue().split("x");
-                defineLabels(Integer.valueOf(coordinates[0]), Integer.valueOf(coordinates[1]));
-                calc.redefineReplic(labelGrid.length, labelGrid[0].length);
-                root.setCenter(grid);
+                defineMatrix(Integer.valueOf(coordinates[0]), Integer.valueOf(coordinates[1]));
+                calculator.redefineReplic(matrix.length, matrix[0].length);
+                root.setCenter(gridPaneMatrix);
             }
         });
         
-        boxBottom.getChildren().addAll(LabelDefineGrid, comboBox, AceptChanges);
+        boxBottom.getChildren().addAll(LabelDefineGrid, comboBox, buttonRedefine);
+        
+        root.setTop(boxTop);
+        root.setCenter(gridPaneMatrix);
+        root.setBottom(boxBottom);
+        root.getStyleClass().add("border-pane");
+               
+        Scene scene = new Scene(root, (primaryScreenBounds.getWidth() * 0.5625), (primaryScreenBounds.getHeight() * 0.867));
+
+        primaryStage.setTitle("Game of Life");
+        primaryStage.setScene(scene);      
+        primaryStage.centerOnScreen();
+        primaryStage.getIcons().addAll(new Image(getClass().getResourceAsStream("/resources/icon.png")));
+        primaryStage.show();         
     }
     
-    private void defineLabels(int rows, int cols) {             
+    private void defineMatrix(int rows, int cols) {  
         
-        grid = new GridPane();
-        grid.setPadding(new Insets(5, 20, 5, 20));
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(0);
-        grid.setVgap(0); 
+        matrix = new Label[rows][cols];
         
-        labelGrid = new Label[rows][cols];
-        for (int i = 0; i < labelGrid.length; i++) {
-            for (int j = 0; j < labelGrid[i].length; j++) {
-                labelGrid[i][j] = new Label();
-                labelGrid[i][j].getStyleClass().add("label");
-                labelGrid[i][j].setStyle("-fx-background-color: "+colorDeath+";");
-                labelGrid[i][j].setPrefSize(15, 15);
-                labelGrid[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
+        for (int i = 0; i < matrix.length; i++) 
+            for (int j = 0; j < matrix[i].length; j++) {
+                matrix[i][j] = new Label();
+                matrix[i][j].setAccessibleHelp(i+","+j);
+                matrix[i][j].getStyleClass().add("label");
+                matrix[i][j].setStyle("-fx-background-color: "+colorDeath+";");
+                matrix[i][j].setPrefSize(primaryScreenBounds.getWidth() * 0.0081, primaryScreenBounds.getHeight() * 0.017);
+                matrix[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent event) {
-                        boolean status = calc.getColorLabel(((Label)event.getSource()).getStyle()).equals(colorDeath);
-                        ((Label)event.getSource()).setStyle("-fx-background-color: "+((status)?colorLife:colorDeath)+";");
-                        calc.changePopulation(status);
-                        labelPopulation.setText("Population "+calc.getPopulation());
+                        String[] coords = ((Label)event.getSource()).getAccessibleHelp().split(",");
+                        
+                        int x = calculator.modifyReplic(Integer.valueOf(coords[0]) + 1, Integer.valueOf(coords[1]) + 1);
+                        ((Label)event.getSource()).setStyle("-fx-background-color: "+((x == 1) ? colorLife : colorDeath)+";");
+                        calculator.modifyPopulation(x == 1);
+                        updatePopulation();
                     }
                 });
-                grid.add(labelGrid[i][j], i, j);
+                
+                gridPaneMatrix.add(matrix[i][j], i, j);
             }
-        }     
+    }
+    
+    private void updateGeneration() {
+        labelGeneration.setText("Generation: "+calculator.getGeneration());
+    }
+    
+    private void updatePopulation() {
+        labelPopulation.setText("Population: "+calculator.getPopulation());
     }
     
     public static void main(String[] args) {
