@@ -8,3 +8,6 @@ in Java and want to implement JavaFX
 # How to play?
 Start with a pattern, which you want, when you are ready start
 the game with "Start Game"
+
+# Demo
+Simple demostration in [YouTube](https://www.youtube.com/watch?v=Kh5HhEx9gj0)
