@@ -17,8 +17,8 @@ First, this app uses this [Maven plugin](https://github.com/openjfx/javafx-maven
 - Use `mvn clean javafx:jlink` to generate a executable (read the docs of the plugin if you aren't sure).
 
 ## How to play?
-- Use left-click to place a cell (green cell).
-- Once you think it's ready just press down the "Start Game" button.
+- Use left-click to place green cell (alive).
+- Once you think it's ready just press down the "Start Game" button to generate the patterns.
 
 ## Demo :sunglasses:
 - Simple demonstration in [YouTube](https://www.youtube.com/watch?v=Kh5HhEx9gj0)
