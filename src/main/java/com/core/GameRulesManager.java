@@ -2,18 +2,10 @@ package com.core;
 
 import javafx.scene.control.Label;
 
-/**
- *
- * @author pr0mming
- * 
- *         How few simple rules can determine such complex things?
- * 
- *         GitHub: https://github.com/pr0mming
- */
 public class GameRulesManager {
 
 	private int[][] replic;
-	private String colorDeath, colorLife;
+	private final String colorDeath, colorLife;
 	private long population, generation;
 	private Label[][] matrix;
 
@@ -21,8 +13,8 @@ public class GameRulesManager {
 		this.matrix = matrix;
 		this.colorLife = ColorLife;
 		this.colorDeath = ColorDeath;
-		this.population = 0l;
-		this.generation = 0l;
+		this.population = 0;
+		this.generation = 0;
 		// This variable is initialized by adding 2 rows and 2 columns, thus the edges
 		// are not ignored
 		this.replic = new int[matrix.length + 2][matrix[0].length + 2];

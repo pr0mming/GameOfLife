@@ -5,8 +5,6 @@ import com.core.GameRulesManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -16,7 +14,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -25,12 +22,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 /**
- *
- * @author pr0mming
- * 
- *         How few simple rules can determine such complex things?
- * 
- *         GitHub: https://github.com/pr0mming
+ * This class represents the GUI in JavaFX
  */
 public class Game extends Application {
 
@@ -53,7 +45,14 @@ public class Game extends Application {
 		colorDeath = "#1A1A00";
 
 		BorderPane root = new BorderPane();
-		root.getStylesheets().add(getClass().getResource("/global.css").toExternalForm());
+
+		var cssInputStream = getClass().getResource("/global.css");
+
+		if (cssInputStream == null) {
+			throw new Exception("Stream is null");
+		}
+
+		root.getStylesheets().add(cssInputStream.toExternalForm());
 
 		// Matrix
 		gridPaneMatrix = new GridPane();
@@ -64,15 +63,12 @@ public class Game extends Application {
 		defineMatrix(60, 30);
 
 		// Animation
-		animation = new Timeline(new KeyFrame(Duration.millis(70), new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				calculator.createPattern();
-				calculator.increaseGeneration(1);
-				updateGeneration();
-				updatePopulation();
-			}
-		}));
+		animation = new Timeline(new KeyFrame(Duration.millis(70), event -> {
+            calculator.createPattern();
+            calculator.increaseGeneration(1);
+            updateGeneration();
+            updatePopulation();
+        }));
 
 		animation.setCycleCount(Timeline.INDEFINITE);
 
@@ -88,78 +84,66 @@ public class Game extends Application {
 		buttonStart = new Button("Start Game");
 		buttonStart.setPrefSize(145, 40);
 		buttonStart.getStyleClass().add("button");
-		buttonStart.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent e) {
-				if (Integer.valueOf(calculator.getPopulation()) > 0) {
-					animation.play();
-					((Button) e.getSource()).setDisable(true);
-					buttonPause.setDisable(false);
-					buttonStep.setDisable(true);
-					buttonRestore.setDisable(true);
-					buttonRedefine.setDisable(true);
-					comboBox.setDisable(true);
-				} else {
-					Alert alert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setTitle("The grid is empty");
-					alert.setHeaderText(null);
-					alert.setContentText("The game starts at least one living cell");
-					alert.showAndWait();
-				}
-			}
-		});
+		buttonStart.setOnAction(e -> {
+            if (Integer.parseInt(calculator.getPopulation()) > 0) {
+                animation.play();
+                ((Button) e.getSource()).setDisable(true);
+                buttonPause.setDisable(false);
+                buttonStep.setDisable(true);
+                buttonRestore.setDisable(true);
+                buttonRedefine.setDisable(true);
+                comboBox.setDisable(true);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("The grid is empty");
+                alert.setHeaderText(null);
+                alert.setContentText("The game starts at least one living cell");
+                alert.showAndWait();
+            }
+        });
 
 		buttonPause = new Button("Pause");
 		buttonPause.setDisable(true);
 		buttonPause.setPrefSize(145, 40);
 		buttonPause.getStyleClass().add("button");
-		buttonPause.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				animation.stop();
-				((Button) event.getSource()).setDisable(true);
-				buttonStep.setDisable(false);
-				buttonStart.setDisable(false);
-				buttonRestore.setDisable(false);
-			}
-		});
+		buttonPause.setOnAction(event -> {
+            animation.stop();
+            ((Button) event.getSource()).setDisable(true);
+            buttonStep.setDisable(false);
+            buttonStart.setDisable(false);
+            buttonRestore.setDisable(false);
+        });
 
 		buttonStep = new Button("Step by step");
 		buttonStep.setDisable(false);
 		buttonStep.setPrefSize(145, 40);
 		buttonStep.getStyleClass().add("button");
-		buttonStep.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				if (Integer.valueOf(calculator.getPopulation()) > 0)
-					calculator.createPattern();
-				else {
-					Alert alert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setTitle("The grid is empty");
-					alert.setHeaderText(null);
-					alert.setContentText("The game starts at least one living cell");
-					alert.showAndWait();
-				}
-			}
-		});
+		buttonStep.setOnAction(event -> {
+            if (Integer.parseInt(calculator.getPopulation()) > 0)
+                calculator.createPattern();
+            else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("The grid is empty");
+                alert.setHeaderText(null);
+                alert.setContentText("The game starts at least one living cell");
+                alert.showAndWait();
+            }
+        });
 
 		buttonRestore = new Button("Restore");
 		buttonRestore.setDisable(false);
 		buttonRestore.setPrefSize(145, 40);
 		buttonRestore.getStyleClass().add("button");
-		buttonRestore.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				calculator.restoreMatrix();
-				calculator.setGeneration(0l);
-				calculator.setPopulation(0l);
-				updateGeneration();
-				updatePopulation();
-				buttonRedefine.setDisable(false);
-				comboBox.setDisable(false);
-				((Button) event.getSource()).setDisable(true);
-			}
-		});
+		buttonRestore.setOnAction(event -> {
+            calculator.restoreMatrix();
+            calculator.setGeneration(0);
+            calculator.setPopulation(0);
+            updateGeneration();
+            updatePopulation();
+            buttonRedefine.setDisable(false);
+            comboBox.setDisable(false);
+            ((Button) event.getSource()).setDisable(true);
+        });
 
 		labelGeneration = new Label("Generation " + calculator.getGeneration());
 		labelGeneration.setPrefSize(150, 40);
@@ -188,17 +172,14 @@ public class Game extends Application {
 		buttonRedefine = new Button("Redefine");
 		buttonRedefine.getStyleClass().add("button");
 		buttonRedefine.setPrefSize(145, 40);
-		buttonRedefine.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent event) {
-				gridPaneMatrix.getChildren().clear();
-				String[] coordinates = comboBox.getValue().split("x");
+		buttonRedefine.setOnMouseClicked(event -> {
+            gridPaneMatrix.getChildren().clear();
+            String[] coordinates = comboBox.getValue().split("x");
 
-				defineMatrix(Integer.valueOf(coordinates[0]), Integer.valueOf(coordinates[1]));
-				calculator.redefineReplic(matrix);
-				root.setCenter(gridPaneMatrix);
-			}
-		});
+            defineMatrix(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+            calculator.redefineReplic(matrix);
+            root.setCenter(gridPaneMatrix);
+        });
 
 		boxBottom.getChildren().addAll(LabelDefineGrid, comboBox, buttonRedefine);
 
@@ -213,7 +194,14 @@ public class Game extends Application {
 		primaryStage.setTitle("Game of Life");
 		primaryStage.setScene(scene);
 		primaryStage.centerOnScreen();
-		primaryStage.getIcons().addAll(new Image(getClass().getResourceAsStream("/icon.png")));
+
+		var iconInputStream = getClass().getResourceAsStream("/icon.png");
+
+		if (iconInputStream == null) {
+			throw new Exception("Stream is null");
+		}
+
+		primaryStage.getIcons().addAll(new Image(iconInputStream));
 		primaryStage.show();
 	}
 
@@ -232,18 +220,15 @@ public class Game extends Application {
 				matrix[i][j].setMinHeight(primaryScreenBounds.getWidth() * 0.01);
 				matrix[i][j].setMaxWidth(primaryScreenBounds.getWidth() * 0.0090);
 				matrix[i][j].setMaxHeight(primaryScreenBounds.getWidth() * 0.001);
-				matrix[i][j].setOnMouseClicked(new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event) {
-						String[] coords = ((Label) event.getSource()).getAccessibleHelp().split(",");
+				matrix[i][j].setOnMouseClicked(event -> {
+                    String[] cords = ((Label) event.getSource()).getAccessibleHelp().split(",");
 
-						int x = calculator.modifyReplic(Integer.valueOf(coords[0]) + 1, Integer.valueOf(coords[1]) + 1);
-						((Label) event.getSource())
-								.setStyle("-fx-background-color: " + ((x == 1) ? colorLife : colorDeath) + ";");
-						calculator.modifyPopulation(x == 1);
-						updatePopulation();
-					}
-				});
+                    int x = calculator.modifyReplic(Integer.parseInt(cords[0]) + 1, Integer.parseInt(cords[1]) + 1);
+                    ((Label) event.getSource())
+                            .setStyle("-fx-background-color: " + ((x == 1) ? colorLife : colorDeath) + ";");
+                    calculator.modifyPopulation(x == 1);
+                    updatePopulation();
+                });
 
 				gridPaneMatrix.add(matrix[i][j], i, j);
 
