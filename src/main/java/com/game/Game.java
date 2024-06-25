@@ -44,33 +44,17 @@ public class Game extends Application {
 		colorLife = "#39E600";
 		colorDeath = "#1A1A00";
 
-		BorderPane root = new BorderPane();
-
 		var cssInputStream = getClass().getResource("/global.css");
 
 		if (cssInputStream == null) {
 			throw new Exception("Stream is null");
 		}
 
+		BorderPane root = new BorderPane();
 		root.getStylesheets().add(cssInputStream.toExternalForm());
 
-		// Matrix
-		gridPaneMatrix = new GridPane();
-		gridPaneMatrix.setPrefSize(primaryScreenBounds.getWidth() * 0.60, primaryScreenBounds.getHeight() * 0.75);
-		gridPaneMatrix.setPadding(new Insets(5, 20, 5, 20));
-		gridPaneMatrix.setAlignment(Pos.CENTER);
-
-		defineMatrix(60, 30);
-
-		// Animation
-		animation = new Timeline(new KeyFrame(Duration.millis(70), event -> {
-            calculator.createPattern();
-            calculator.increaseGeneration(1);
-            updateGeneration();
-            updatePopulation();
-        }));
-
-		animation.setCycleCount(Timeline.INDEFINITE);
+		initializeMatrix(60, 30);
+		initializeAnimations();
 
 		calculator = new GameRulesManager(matrix, colorDeath, colorLife);
 
@@ -169,15 +153,15 @@ public class Game extends Application {
 		Label LabelDefineGrid = new Label("Redefine Grid: ");
 		LabelDefineGrid.getStyleClass().add("label-information");
 
-		buttonRedefine = new Button("Redefine");
+		buttonRedefine = new Button("Resize");
 		buttonRedefine.getStyleClass().add("button");
 		buttonRedefine.setPrefSize(145, 40);
 		buttonRedefine.setOnMouseClicked(event -> {
             gridPaneMatrix.getChildren().clear();
             String[] coordinates = comboBox.getValue().split("x");
 
-            defineMatrix(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
-            calculator.redefineReplic(matrix);
+            initializeMatrix(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+            calculator.redefineReplica(matrix);
             root.setCenter(gridPaneMatrix);
         });
 
@@ -205,7 +189,12 @@ public class Game extends Application {
 		primaryStage.show();
 	}
 
-	private void defineMatrix(int rows, int cols) {
+	private void initializeMatrix(int rows, int cols) {
+		// Matrix
+		gridPaneMatrix = new GridPane();
+		gridPaneMatrix.setPrefSize(primaryScreenBounds.getWidth() * 0.60, primaryScreenBounds.getHeight() * 0.75);
+		gridPaneMatrix.setPadding(new Insets(5, 20, 5, 20));
+		gridPaneMatrix.setAlignment(Pos.CENTER);
 
 		matrix = new Label[rows][cols];
 
@@ -223,7 +212,7 @@ public class Game extends Application {
 				matrix[i][j].setOnMouseClicked(event -> {
                     String[] cords = ((Label) event.getSource()).getAccessibleHelp().split(",");
 
-                    int x = calculator.modifyReplic(Integer.parseInt(cords[0]) + 1, Integer.parseInt(cords[1]) + 1);
+                    int x = calculator.modifyReplica(Integer.parseInt(cords[0]) + 1, Integer.parseInt(cords[1]) + 1);
                     ((Label) event.getSource())
                             .setStyle("-fx-background-color: " + ((x == 1) ? colorLife : colorDeath) + ";");
                     calculator.modifyPopulation(x == 1);
@@ -233,6 +222,18 @@ public class Game extends Application {
 				gridPaneMatrix.add(matrix[i][j], i, j);
 
 			}
+	}
+
+	private void initializeAnimations() {
+		// Animation
+		animation = new Timeline(new KeyFrame(Duration.millis(70), event -> {
+			calculator.createPattern();
+			calculator.increaseGeneration(1);
+			updateGeneration();
+			updatePopulation();
+		}));
+
+		animation.setCycleCount(Timeline.INDEFINITE);
 	}
 
 	private void updateGeneration() {

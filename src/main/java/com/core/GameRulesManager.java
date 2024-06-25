@@ -2,9 +2,12 @@ package com.core;
 
 import javafx.scene.control.Label;
 
+/**
+ * This class manage all the rules of Conway's game
+ */
 public class GameRulesManager {
 
-	private int[][] replic;
+	private int[][] replica;
 	private final String colorDeath, colorLife;
 	private long population, generation;
 	private Label[][] matrix;
@@ -15,46 +18,47 @@ public class GameRulesManager {
 		this.colorDeath = ColorDeath;
 		this.population = 0;
 		this.generation = 0;
+
 		// This variable is initialized by adding 2 rows and 2 columns, thus the edges
 		// are not ignored
-		this.replic = new int[matrix.length + 2][matrix[0].length + 2];
+		this.replica = new int[matrix.length + 2][matrix[0].length + 2];
 	}
 
 	/*
 	 * 1 = cell alive 0 = cell dead
 	 * 
 	 * This method clones the array, however clone () does not clone itself into all
-	 * elements of the array so I have had to do it manually.
+	 * elements of the array, so I have had to do it manually.
 	 */
-	private int[][] copyReplic() {
-		int[][] copy = new int[replic.length][];
+	private int[][] copyReplica() {
+		int[][] copy = new int[replica.length][];
 
 		for (int i = 0; i < copy.length; i++)
-			copy[i] = replic[i].clone();
+			copy[i] = replica[i].clone();
 
 		return copy;
 	}
 
-	public int modifyReplic(int x, int y) {
-		replic[x][y] = (replic[x][y] == 0) ? 1 : 0;
+	public int modifyReplica(int x, int y) {
+		replica[x][y] = (replica[x][y] == 0) ? 1 : 0;
 
-		return replic[x][y];
+		return replica[x][y];
 	}
 
 	// This method returns the new pattern.
 	public void createPattern() {
-		evaluateReplic(copyReplic());
+		evaluateReplica(copyReplica());
 	}
 
-	private void evaluateReplic(int[][] copy) {
+	private void evaluateReplica(int[][] copy) {
 		for (int i = 1; i < copy.length - 1; i++)
 			for (int j = 1; j < copy[i].length - 1; j++)
 				evaluateCell(i, j, copy);
 	}
 
 	/*
-	 * This method receives a block (coordinates) and evaluates the block around
-	 * them. From the counter it is determined whether the block is still alive,
+	 * This method receives a block (coordinates) and evaluates the block (around them)
+	 * From the counter it is determined whether the block is still alive,
 	 * dies or not their status is altered ...
 	 */
 	private void evaluateCell(int row, int col, int[][] copy) {
@@ -67,11 +71,11 @@ public class GameRulesManager {
 
 		if ((count < 2 && copy[row][col] == 1) || (count > 3 && copy[row][col] == 1)) {
 			population -= 1;
-			replic[row][col] = 0;
+			replica[row][col] = 0;
 			matrix[row - 1][col - 1].setStyle("-fx-background-color: " + this.colorDeath + ";");
 		} else if (count == 3 && copy[row][col] == 0) {
 			population += 1;
-			replic[row][col] = 1;
+			replica[row][col] = 1;
 			matrix[row - 1][col - 1].setStyle("-fx-background-color: " + this.colorLife + ";");
 		}
 	}
@@ -81,17 +85,17 @@ public class GameRulesManager {
 		if (population > 0) {
 			for (int i = 0, c = 0; i < matrix.length && c < population; i++)
 				for (int j = 0; j < matrix[i].length && c < population; j++)
-					if (replic[i + 1][j + 1] == 1) {
+					if (replica[i + 1][j + 1] == 1) {
 						c++;
-						replic[i + 1][j + 1] = 0;
+						replica[i + 1][j + 1] = 0;
 						matrix[i][j].setStyle("-fx-background-color: " + this.colorDeath + ";");
 					}
 		}
 	}
 
-	public void redefineReplic(Label[][] matrix) {
+	public void redefineReplica(Label[][] matrix) {
 		this.matrix = matrix;
-		this.replic = new int[matrix.length + 2][matrix[0].length + 2];
+		this.replica = new int[matrix.length + 2][matrix[0].length + 2];
 	}
 
 	/*
