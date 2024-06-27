@@ -69,7 +69,7 @@ public class Game extends Application {
 		buttonStart.setPrefSize(145, 40);
 		buttonStart.getStyleClass().add("button");
 		buttonStart.setOnAction(e -> {
-            if (Integer.parseInt(calculator.getPopulation()) > 0) {
+            if (calculator.getPopulation() > 0) {
                 animation.play();
                 ((Button) e.getSource()).setDisable(true);
                 buttonPause.setDisable(false);
@@ -103,8 +103,8 @@ public class Game extends Application {
 		buttonStep.setPrefSize(145, 40);
 		buttonStep.getStyleClass().add("button");
 		buttonStep.setOnAction(event -> {
-            if (Integer.parseInt(calculator.getPopulation()) > 0)
-                calculator.createPattern();
+            if (calculator.getPopulation() > 0)
+                calculator.iterateGeneration();
             else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("The grid is empty");
@@ -119,7 +119,7 @@ public class Game extends Application {
 		buttonRestore.setPrefSize(145, 40);
 		buttonRestore.getStyleClass().add("button");
 		buttonRestore.setOnAction(event -> {
-            calculator.restoreMatrix();
+            calculator.restoreGame();
             calculator.setGeneration(0);
             calculator.setPopulation(0);
             updateGeneration();
@@ -147,7 +147,7 @@ public class Game extends Application {
 		boxBottom.setStyle("-fx-background-color: black;");
 
 		comboBox = new ComboBox<>();
-		comboBox.getItems().addAll("80x40", "70x35", "60x30", "50x25", "40x20");
+		comboBox.getItems().addAll("70x40", "70x35", "60x30", "50x25", "40x20");
 		comboBox.setValue("60x30");
 
 		Label LabelDefineGrid = new Label("Redefine Grid: ");
@@ -158,10 +158,13 @@ public class Game extends Application {
 		buttonRedefine.setPrefSize(145, 40);
 		buttonRedefine.setOnMouseClicked(event -> {
             gridPaneMatrix.getChildren().clear();
-            String[] coordinates = comboBox.getValue().split("x");
+            String[] cords = comboBox.getValue().split("x");
 
-            initializeMatrix(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
-            calculator.redefineReplica(matrix);
+			var x = Integer.parseInt(cords[0]) + 1 ;
+			var y = Integer.parseInt(cords[1]) + 1;
+
+            initializeMatrix(x, y);
+            calculator.resizeMatrix(matrix);
             root.setCenter(gridPaneMatrix);
         });
 
@@ -202,21 +205,28 @@ public class Game extends Application {
 			for (int j = 0; j < matrix[i].length; j++) {
 
 				matrix[i][j] = new Label();
-				matrix[i][j].setAccessibleHelp(i + "," + j);
+				matrix[i][j].setAccessibleHelp(i + "," + j); // Save cell position, I didn't find a better way
 				matrix[i][j].getStyleClass().add("classic-label");
 				matrix[i][j].setStyle("-fx-background-color: " + colorDeath + ";");
 				matrix[i][j].setMinWidth(primaryScreenBounds.getWidth() * 0.0070);
-				matrix[i][j].setMinHeight(primaryScreenBounds.getWidth() * 0.01);
-				matrix[i][j].setMaxWidth(primaryScreenBounds.getWidth() * 0.0090);
-				matrix[i][j].setMaxHeight(primaryScreenBounds.getWidth() * 0.001);
+				matrix[i][j].setMinHeight(primaryScreenBounds.getHeight() * 0.01);
 				matrix[i][j].setOnMouseClicked(event -> {
                     String[] cords = ((Label) event.getSource()).getAccessibleHelp().split(",");
 
-                    int x = calculator.modifyReplica(Integer.parseInt(cords[0]) + 1, Integer.parseInt(cords[1]) + 1);
+					var x = Integer.parseInt(cords[0]) + 1 ;
+					var y = Integer.parseInt(cords[1]) + 1;
+
+                    var cellState = calculator.changeCellState(x, y);
                     ((Label) event.getSource())
-                            .setStyle("-fx-background-color: " + ((x == 1) ? colorLife : colorDeath) + ";");
-                    calculator.modifyPopulation(x == 1);
+                            .setStyle("-fx-background-color: " + ((cellState) ? colorLife : colorDeath) + ";");
+
+					calculator.setPopulation(calculator.getPopulation() + (cellState ? 1 : -1));
+
                     updatePopulation();
+
+					if (buttonRestore.isDisable()) {
+						buttonRestore.setDisable(false);
+					}
                 });
 
 				gridPaneMatrix.add(matrix[i][j], i, j);
@@ -226,9 +236,10 @@ public class Game extends Application {
 
 	private void initializeAnimations() {
 		// Animation
-		animation = new Timeline(new KeyFrame(Duration.millis(70), event -> {
-			calculator.createPattern();
-			calculator.increaseGeneration(1);
+		animation = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+			calculator.iterateGeneration();
+			calculator.setGeneration(calculator.getGeneration() + 1);
+
 			updateGeneration();
 			updatePopulation();
 		}));
