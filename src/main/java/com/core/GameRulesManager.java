@@ -3,7 +3,6 @@ package com.core;
 import com.core.types.Point;
 import javafx.scene.control.Label;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
