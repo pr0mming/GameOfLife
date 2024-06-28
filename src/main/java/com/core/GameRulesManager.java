@@ -1,55 +1,82 @@
 package com.core;
 
+import com.core.types.Point;
 import javafx.scene.control.Label;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * This class manage all the rules of Conway's game
  */
 public class GameRulesManager {
 
-	private boolean[][] replica;
-
-	private final String colorDeath;
-	private final String colorLife;
+	private final String deadCellColor;
+	private final String aliveCellColor;
 
 	private long population;
 	private long generation;
 
 	private Label[][] matrix;
+	private HashSet<Point> aliveCells;
+	private boolean[][] replica;
 
-	public GameRulesManager(Label[][] matrix, String ColorDeath, String ColorLife) {
-		this.matrix = matrix;
-		this.colorLife = ColorLife;
-		this.colorDeath = ColorDeath;
+	public GameRulesManager(Label[][] matrix, String deadCellColor, String aliveCellColor) {
+		this.deadCellColor = deadCellColor;
+		this.aliveCellColor = aliveCellColor;
+
 		this.population = 0;
 		this.generation = 0;
 
-		// This variable is initialized by adding 2 rows and 2 columns, thus the edges are not ignored
-		this.replica = new boolean[matrix.length + 2][matrix[0].length + 2];
+		this.matrix = matrix;
+		this.aliveCells = new HashSet<>();
+
+		// This matrix is useful to access easily to the state of each cell
+		this.replica = new boolean[matrix.length][matrix[0].length];
 	}
 
 	/**
 	 * This method creates first a copy of the values (as boolean) of the matrix
 	 * Then pass it as read-only to calculate the new matrix, the changes are made only on the replica
+	 * Finally, iterate each alive cell (and the nearest ones) to calculate the new state (alive or dead)
 	 */
 	public void iterateGeneration() {
+		boolean[][] copy = getCopyFromReplica();
+		HashSet<Point> aliveCellsTmp = new HashSet<>();
+
+		for (Point aliveCell : aliveCells) {
+			var row = aliveCell.x;
+			var col = aliveCell.y;
+
+			// Extra validation to avoid out of range exception in array
+			if (row - 1 < 0) row++;
+			if (col - 1 < 0) col++;
+
+			for (int i = row - 1; i < (row + 2) && i < copy.length; i++) {
+				for (int j = col - 1; j < (col + 2) && j < copy[i].length; j++) {
+					var cellState = evaluateCell(i, j, copy);
+
+					// Keep only alive cells, the HashSet avoid duplicate values ...
+					if (cellState) {
+						aliveCellsTmp.add(new Point(i, j));
+					}
+				}
+			}
+		}
+
+		// Save new pattern with alive cells
+		aliveCells = aliveCellsTmp;
+
+		population = aliveCells.size();
+	}
+
+	private boolean[][] getCopyFromReplica() {
 		boolean[][] copy = new boolean[replica.length][];
 
 		for (int i = 0; i < copy.length; i++)
 			copy[i] = replica[i].clone();
 
-		computeNewPattern(copy);
-	}
-
-	/**
-	 * This method iterate each cell to calculate the new state (alive or dead)
-	 * Note: I know it's too expensive but at the moment I haven't thought in a better approach ...
-	 * @param copy copy of the replica, used as read-only because to write is used the replica ...
-	 */
-	private void computeNewPattern(boolean[][] copy) {
-		for (int i = 1; i < copy.length - 1; i++)
-			for (int j = 1; j < copy[i].length - 1; j++)
-				evaluateCell(i, j, copy);
+		return copy;
 	}
 
 	/**
@@ -58,20 +85,20 @@ public class GameRulesManager {
 	 * @param col position in Y axis
 	 * @param copy copy of the replica, it's used only to read
 	 */
-	private void evaluateCell(int row, int col, boolean[][] copy) {
+	private boolean evaluateCell(int row, int col, boolean[][] copy) {
 		var cellState = getCellState(row, col, copy);
 
 		if (cellState != copy[row][col]) {
 			if (cellState) {
-				population++;
 				replica[row][col] = true;
-				matrix[row - 1][col - 1].setStyle("-fx-background-color: " + this.colorLife + ";");
+				matrix[row][col].setStyle("-fx-background-color: " + this.aliveCellColor + ";");
 			} else {
-				population--;
 				replica[row][col] = false;
-				matrix[row - 1][col - 1].setStyle("-fx-background-color: " + this.colorDeath + ";");
+				matrix[row][col].setStyle("-fx-background-color: " + this.deadCellColor + ";");
 			}
 		}
+
+		return cellState;
 	}
 
 	/**
@@ -84,8 +111,11 @@ public class GameRulesManager {
 	private boolean getCellState(int row, int col, boolean[][] copy) {
 		var aliveCellsCount = 0;
 
-		for (int i = row - 1; i < (row + 2); i++)
-			for (int j = col - 1; j < (col + 2); j++)
+		if (row - 1 < 0) row++;
+		if (col - 1 < 0) col++;
+
+		for (int i = row - 1; i < (row + 2) && i < copy.length; i++)
+			for (int j = col - 1; j < (col + 2) && j < copy[i].length; j++)
 				if (copy[i][j]) {
 					aliveCellsCount++;
 				}
@@ -113,6 +143,12 @@ public class GameRulesManager {
 	public boolean changeCellState(int x, int y) {
 		replica[x][y] = !replica[x][y];
 
+		if (replica[x][y]) {
+			aliveCells.add(new Point(x, y));
+		} else {
+			aliveCells.remove(new Point(x, y));
+		}
+
 		return replica[x][y];
 	}
 
@@ -120,14 +156,12 @@ public class GameRulesManager {
 	 * This method cleans the board and assign false to the matrix
 	 */
 	public void restoreGame() {
-		if (population > 0) {
-			for (int i = 0, c = 0; i < matrix.length && c < population; i++)
-				for (int j = 0; j < matrix[i].length && c < population; j++)
-					if (replica[i + 1][j + 1]) {
-						c++;
-						replica[i + 1][j + 1] = false;
-						matrix[i][j].setStyle("-fx-background-color: " + this.colorDeath + ";");
-					}
+		for (Point aliveCell : aliveCells) {
+			var x = aliveCell.x;
+			var y = aliveCell.y;
+
+			replica[x][y] = false;
+			matrix[x][y].setStyle("-fx-background-color: " + this.deadCellColor + ";");
 		}
 	}
 
@@ -137,7 +171,7 @@ public class GameRulesManager {
 	 */
 	public void resizeMatrix(Label[][] matrix) {
 		this.matrix = matrix;
-		this.replica = new boolean[matrix.length + 2][matrix[0].length + 2];
+		this.replica = new boolean[matrix.length][matrix[0].length];
 	}
 
 	public long getPopulation() {
