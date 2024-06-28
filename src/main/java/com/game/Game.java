@@ -26,260 +26,261 @@ import javafx.util.Duration;
  */
 public class Game extends Application {
 
-	private GridPane gridPaneMatrix;
-	private Label[][] matrix;
-	private GameRulesManager calculator;
-	private Button buttonStart, buttonPause, buttonStep, buttonRestore, buttonRedefine;
-	private String aliveCellColor, deadCellColor;
-	private BorderPane root;
-	private Label labelGeneration, labelPopulation;
-	private Timeline animation;
-	private ComboBox<String> comboBox;
-	private Rectangle2D primaryScreenBounds;
+    private GridPane gridPaneMatrix;
+    private Label[][] matrix;
+    private Button buttonStart, buttonPause, buttonStep, buttonRestore, buttonRedefine;
+    private BorderPane root;
+    private Label labelGeneration, labelPopulation;
+    private Timeline gameIterationTimer;
+    private ComboBox<String> comboBox;
+    private Rectangle2D primaryScreenBounds;
 
-	public static void main(String[] args) {
-		launch();
-	}
+    private String aliveCellColor, deadCellColor;
+    private GameRulesManager calculator;
 
-	@Override
-	public void start(Stage primaryStage) throws Exception {
+    public static void main(String[] args) {
+        launch();
+    }
 
-		primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+    @Override
+    public void start(Stage primaryStage) throws Exception {
 
-		aliveCellColor = "#39E600";
-		deadCellColor = "#1A1A00";
+        primaryScreenBounds = Screen.getPrimary().getVisualBounds();
 
-		// Apply CSS
-		var cssInputStream = getClass().getResource("/global.css");
+        aliveCellColor = "#39E600";
+        deadCellColor = "#1A1A00";
 
-		if (cssInputStream == null) {
-			throw new Exception("Stream is null");
-		}
+        // Apply CSS
+        var cssInputStream = getClass().getResource("/global.css");
 
-		root = new BorderPane();
-		root.getStylesheets().add(cssInputStream.toExternalForm());
-		root.getStyleClass().add("border-pane");
+        if (cssInputStream == null) {
+            throw new Exception("Stream is null");
+        }
 
-		initializeMatrix(60, 30);
-		initializeAnimations();
+        root = new BorderPane();
+        root.getStylesheets().add(cssInputStream.toExternalForm());
+        root.getStyleClass().add("border-pane");
 
-		// Place buttons and labels on the root panel
-		initializeTopControls();
-		initializeBottomControls();
+        initializeMatrix(60, 30);
+        initializeTimer();
 
-		Scene scene = new Scene(root, (primaryScreenBounds.getWidth() * 0.5625),
-				(primaryScreenBounds.getHeight() * 0.867));
+        // Place buttons and labels on the root panel
+        initializeTopControls();
+        initializeBottomControls();
 
-		primaryStage.setTitle("Game of Life");
-		primaryStage.setScene(scene);
-		primaryStage.centerOnScreen();
+        Scene scene = new Scene(root, (primaryScreenBounds.getWidth() * 0.5625),
+                (primaryScreenBounds.getHeight() * 0.867));
 
-		// Set up favicon
-		var iconInputStream = getClass().getResourceAsStream("/icon.png");
+        primaryStage.setTitle("Game of Life");
+        primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
 
-		if (iconInputStream == null) {
-			throw new Exception("Stream is null");
-		}
+        // Set up favicon
+        var iconInputStream = getClass().getResourceAsStream("/icon.png");
 
-		primaryStage.getIcons().addAll(new Image(iconInputStream));
-		primaryStage.show();
-	}
+        if (iconInputStream == null) {
+            throw new Exception("Stream is null");
+        }
 
-	private void initializeTopControls() {
-		// Buttons
-		HBox boxTop = new HBox();
-		boxTop.setPadding(new Insets(30, 10, 10, 10));
-		boxTop.setSpacing(15);
-		boxTop.setAlignment(Pos.CENTER);
-		boxTop.setStyle("-fx-background-color: black;");
+        primaryStage.getIcons().addAll(new Image(iconInputStream));
+        primaryStage.show();
+    }
 
-		buttonStart = new Button("Start Game");
-		buttonStart.setPrefSize(145, 40);
-		buttonStart.getStyleClass().add("button");
-		buttonStart.setOnAction(e -> {
-			if (calculator.getPopulation() > 0) {
-				animation.play();
+    private void initializeTopControls() {
+        // Buttons
+        HBox boxTop = new HBox();
+        boxTop.setPadding(new Insets(30, 10, 10, 10));
+        boxTop.setSpacing(15);
+        boxTop.setAlignment(Pos.CENTER);
+        boxTop.setStyle("-fx-background-color: black;");
 
-				((Button) e.getSource()).setDisable(true);
-				buttonPause.setDisable(false);
-				buttonStep.setDisable(true);
-				buttonRestore.setDisable(true);
-				buttonRedefine.setDisable(true);
+        buttonStart = new Button("Start Game");
+        buttonStart.setPrefSize(145, 40);
+        buttonStart.getStyleClass().add("button");
+        buttonStart.setOnAction(e -> {
+            if (calculator.getPopulation() > 0) {
+                gameIterationTimer.play();
 
-				comboBox.setDisable(true);
-			} else {
-				Alert alert = new Alert(Alert.AlertType.INFORMATION);
-				alert.setTitle("The grid is empty");
-				alert.setHeaderText(null);
-				alert.setContentText("The game starts at least one living cell");
-				alert.showAndWait();
-			}
-		});
+                ((Button) e.getSource()).setDisable(true);
+                buttonPause.setDisable(false);
+                buttonStep.setDisable(true);
+                buttonRestore.setDisable(true);
+                buttonRedefine.setDisable(true);
 
-		buttonPause = new Button("Pause");
-		buttonPause.setDisable(true);
-		buttonPause.setPrefSize(145, 40);
-		buttonPause.getStyleClass().add("button");
-		buttonPause.setOnAction(event -> {
-			animation.stop();
-			((Button) event.getSource()).setDisable(true);
-			buttonStep.setDisable(false);
-			buttonStart.setDisable(false);
-			buttonRestore.setDisable(false);
-		});
+                comboBox.setDisable(true);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("The grid is empty");
+                alert.setHeaderText(null);
+                alert.setContentText("The game starts at least one living cell");
+                alert.showAndWait();
+            }
+        });
 
-		buttonStep = new Button("Next step");
-		buttonStep.setDisable(false);
-		buttonStep.setPrefSize(145, 40);
-		buttonStep.getStyleClass().add("button");
-		buttonStep.setOnAction(event -> {
-			if (calculator.getPopulation() > 0) {
-				calculator.iterateGeneration();
-				calculator.setGeneration(calculator.getGeneration() + 1);
+        buttonPause = new Button("Pause");
+        buttonPause.setDisable(true);
+        buttonPause.setPrefSize(145, 40);
+        buttonPause.getStyleClass().add("button");
+        buttonPause.setOnAction(event -> {
+            gameIterationTimer.stop();
+            ((Button) event.getSource()).setDisable(true);
+            buttonStep.setDisable(false);
+            buttonStart.setDisable(false);
+            buttonRestore.setDisable(false);
+        });
 
-				updateGeneration();
-				updatePopulation();
-			} else {
-				Alert alert = new Alert(Alert.AlertType.INFORMATION);
-				alert.setTitle("The grid is empty");
-				alert.setHeaderText(null);
-				alert.setContentText("The game starts at least one living cell");
-				alert.showAndWait();
-			}
-		});
+        buttonStep = new Button("Next step");
+        buttonStep.setDisable(false);
+        buttonStep.setPrefSize(145, 40);
+        buttonStep.getStyleClass().add("button");
+        buttonStep.setOnAction(event -> {
+            if (calculator.getPopulation() > 0) {
+                calculator.iterateGeneration();
+                calculator.setGeneration(calculator.getGeneration() + 1);
 
-		buttonRestore = new Button("Restore");
-		buttonRestore.setDisable(false);
-		buttonRestore.setPrefSize(145, 40);
-		buttonRestore.getStyleClass().add("button");
-		buttonRestore.setOnAction(event -> {
-			calculator.restoreGame();
-			calculator.setGeneration(0);
-			calculator.setPopulation(0);
+                updateGeneration();
+                updatePopulation();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("The grid is empty");
+                alert.setHeaderText(null);
+                alert.setContentText("The game starts at least one living cell");
+                alert.showAndWait();
+            }
+        });
 
-			updateGeneration();
-			updatePopulation();
+        buttonRestore = new Button("Restore");
+        buttonRestore.setDisable(false);
+        buttonRestore.setPrefSize(145, 40);
+        buttonRestore.getStyleClass().add("button");
+        buttonRestore.setOnAction(event -> {
+            calculator.restoreGame();
+            calculator.setGeneration(0);
+            calculator.setPopulation(0);
 
-			buttonRedefine.setDisable(false);
-			comboBox.setDisable(false);
-			((Button) event.getSource()).setDisable(true);
-		});
+            updateGeneration();
+            updatePopulation();
 
-		labelGeneration = new Label("Generation " + calculator.getGeneration());
-		labelGeneration.setPrefSize(150, 40);
-		labelGeneration.getStyleClass().add("label-information");
+            buttonRedefine.setDisable(false);
+            comboBox.setDisable(false);
+            ((Button) event.getSource()).setDisable(true);
+        });
 
-		labelPopulation = new Label("Population " + calculator.getPopulation());
-		labelPopulation.setPrefSize(150, 40);
-		labelPopulation.getStyleClass().add("label-information");
+        labelGeneration = new Label("Generation " + calculator.getGeneration());
+        labelGeneration.setPrefSize(150, 40);
+        labelGeneration.getStyleClass().add("label-information");
 
-		boxTop.getChildren().addAll(buttonStart, buttonPause, buttonStep, buttonRestore, labelGeneration,
-				labelPopulation);
+        labelPopulation = new Label("Population " + calculator.getPopulation());
+        labelPopulation.setPrefSize(150, 40);
+        labelPopulation.getStyleClass().add("label-information");
 
-		root.setTop(boxTop);
-	}
+        boxTop.getChildren().addAll(buttonStart, buttonPause, buttonStep, buttonRestore, labelGeneration,
+                labelPopulation);
 
-	private void initializeBottomControls() {
-		HBox boxBottom = new HBox();
-		boxBottom.setPadding(new Insets(10, 10, 50, 10));
-		boxBottom.setSpacing(10);
-		boxBottom.setAlignment(Pos.BOTTOM_CENTER);
-		boxBottom.setStyle("-fx-background-color: black;");
+        root.setTop(boxTop);
+    }
 
-		comboBox = new ComboBox<>();
-		comboBox.getItems().addAll("70x40", "70x35", "60x30", "50x25", "40x20");
-		comboBox.setValue("60x30");
+    private void initializeBottomControls() {
+        HBox boxBottom = new HBox();
+        boxBottom.setPadding(new Insets(10, 10, 50, 10));
+        boxBottom.setSpacing(10);
+        boxBottom.setAlignment(Pos.BOTTOM_CENTER);
+        boxBottom.setStyle("-fx-background-color: black;");
 
-		Label LabelDefineGrid = new Label("Redefine Grid: ");
-		LabelDefineGrid.getStyleClass().add("label-information");
+        comboBox = new ComboBox<>();
+        comboBox.getItems().addAll("70x40", "70x35", "60x30", "50x25", "40x20");
+        comboBox.setValue("60x30");
 
-		buttonRedefine = new Button("Resize");
-		buttonRedefine.getStyleClass().add("button");
-		buttonRedefine.setPrefSize(145, 40);
-		buttonRedefine.setOnMouseClicked(event -> {
-			gridPaneMatrix.getChildren().clear();
-			String[] cords = comboBox.getValue().split("x");
+        Label LabelDefineGrid = new Label("Redefine Grid: ");
+        LabelDefineGrid.getStyleClass().add("label-information");
 
-			var x = Integer.parseInt(cords[0]);
-			var y = Integer.parseInt(cords[1]);
+        buttonRedefine = new Button("Resize");
+        buttonRedefine.getStyleClass().add("button");
+        buttonRedefine.setPrefSize(145, 40);
+        buttonRedefine.setOnMouseClicked(event -> {
+            gridPaneMatrix.getChildren().clear();
+            String[] cords = comboBox.getValue().split("x");
 
-			initializeMatrix(x, y);
-			calculator.resizeMatrix(matrix);
-			root.setCenter(gridPaneMatrix);
-		});
+            var x = Integer.parseInt(cords[0]);
+            var y = Integer.parseInt(cords[1]);
 
-		boxBottom.getChildren().addAll(LabelDefineGrid, comboBox, buttonRedefine);
+            initializeMatrix(x, y);
+            calculator.resizeMatrix(matrix);
+            root.setCenter(gridPaneMatrix);
+        });
 
-		root.setBottom(boxBottom);
-	}
+        boxBottom.getChildren().addAll(LabelDefineGrid, comboBox, buttonRedefine);
 
-	private void initializeMatrix(int rows, int cols) {
-		// Matrix
-		gridPaneMatrix = new GridPane();
-		gridPaneMatrix.setPrefSize(primaryScreenBounds.getWidth() * 0.60, primaryScreenBounds.getHeight() * 0.75);
-		gridPaneMatrix.setPadding(new Insets(5, 20, 5, 20));
-		gridPaneMatrix.setAlignment(Pos.CENTER);
+        root.setBottom(boxBottom);
+    }
 
-		matrix = new Label[rows][cols];
+    private void initializeMatrix(int rows, int cols) {
+        // Matrix
+        gridPaneMatrix = new GridPane();
+        gridPaneMatrix.setPrefSize(primaryScreenBounds.getWidth() * 0.60, primaryScreenBounds.getHeight() * 0.75);
+        gridPaneMatrix.setPadding(new Insets(5, 20, 5, 20));
+        gridPaneMatrix.setAlignment(Pos.CENTER);
 
-		for (int i = 0; i < matrix.length; i++)
-			for (int j = 0; j < matrix[i].length; j++) {
+        matrix = new Label[rows][cols];
 
-				matrix[i][j] = new Label();
-				matrix[i][j].setAccessibleHelp(i + "," + j); // Save cell position, I didn't find a better way
-				matrix[i][j].getStyleClass().add("classic-label");
-				matrix[i][j].setStyle("-fx-background-color: " + deadCellColor + ";");
-				matrix[i][j].setMinWidth(primaryScreenBounds.getWidth() * 0.0070);
-				matrix[i][j].setMinHeight(primaryScreenBounds.getHeight() * 0.01);
-				matrix[i][j].setOnMouseClicked(event -> {
-					// Avoid place a green cell if the game is in progress
-					if (!buttonPause.isDisable()) return;
+        for (int i = 0; i < matrix.length; i++)
+            for (int j = 0; j < matrix[i].length; j++) {
+
+                matrix[i][j] = new Label();
+                matrix[i][j].setAccessibleHelp(i + "," + j); // Save cell position, I didn't find a better way
+                matrix[i][j].getStyleClass().add("classic-label");
+                matrix[i][j].setStyle("-fx-background-color: " + deadCellColor + ";");
+                matrix[i][j].setMinWidth(primaryScreenBounds.getWidth() * 0.0070);
+                matrix[i][j].setMinHeight(primaryScreenBounds.getHeight() * 0.01);
+                matrix[i][j].setOnMouseClicked(event -> {
+                    // Avoid place a green cell if the game is in progress
+                    if (!buttonPause.isDisable()) return;
 
                     String[] cords = ((Label) event.getSource()).getAccessibleHelp().split(",");
 
-					var x = Integer.parseInt(cords[0]);
-					var y = Integer.parseInt(cords[1]);
+                    var x = Integer.parseInt(cords[0]);
+                    var y = Integer.parseInt(cords[1]);
 
                     var cellState = calculator.changeCellState(x, y);
                     ((Label) event.getSource())
                             .setStyle("-fx-background-color: " + ((cellState) ? aliveCellColor : deadCellColor) + ";");
 
-					calculator.setPopulation(calculator.getPopulation() + (cellState ? 1 : -1));
+                    calculator.setPopulation(calculator.getPopulation() + (cellState ? 1 : -1));
 
                     updatePopulation();
 
-					if (buttonRestore.isDisable()) {
-						buttonRestore.setDisable(false);
-					}
+                    if (buttonRestore.isDisable()) {
+                        buttonRestore.setDisable(false);
+                    }
                 });
 
-				gridPaneMatrix.add(matrix[i][j], i, j);
+                gridPaneMatrix.add(matrix[i][j], i, j);
 
-			}
+            }
 
-		root.setCenter(gridPaneMatrix);
+        root.setCenter(gridPaneMatrix);
 
-		calculator = new GameRulesManager(matrix, deadCellColor, aliveCellColor);
-	}
+        calculator = new GameRulesManager(matrix, deadCellColor, aliveCellColor);
+    }
 
-	private void initializeAnimations() {
-		// Animation
-		animation = new Timeline(new KeyFrame(Duration.millis(90), event -> {
-			calculator.iterateGeneration();
-			calculator.setGeneration(calculator.getGeneration() + 1);
+    private void initializeTimer() {
+        // Animation
+        gameIterationTimer = new Timeline(new KeyFrame(Duration.millis(90), event -> {
+            calculator.iterateGeneration();
+            calculator.setGeneration(calculator.getGeneration() + 1);
 
-			updateGeneration();
-			updatePopulation();
-		}));
+            updateGeneration();
+            updatePopulation();
+        }));
 
-		animation.setCycleCount(Timeline.INDEFINITE);
-	}
+        gameIterationTimer.setCycleCount(Timeline.INDEFINITE);
+    }
 
-	private void updateGeneration() {
-		labelGeneration.setText("Generation: " + calculator.getGeneration());
-	}
+    private void updateGeneration() {
+        labelGeneration.setText("Generation: " + calculator.getGeneration());
+    }
 
-	private void updatePopulation() {
-		labelPopulation.setText("Population: " + calculator.getPopulation());
-	}
+    private void updatePopulation() {
+        labelPopulation.setText("Population: " + calculator.getPopulation());
+    }
 }

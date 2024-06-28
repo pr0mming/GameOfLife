@@ -11,10 +11,10 @@ A small simulator of the [Conway's Game](https://en.wikipedia.org/wiki/Conway%27
 ## Run it! :rocket:
 First, this app uses this [Maven plugin](https://github.com/openjfx/javafx-maven-plugin) to manage all related to JavaFX:
 
-- I recommend use **IntelliJ IDE** in case you have problems to download all the dependencies with **Eclipse IDE**.
+- **NOTE:** I recommend use **IntelliJ IDE** in case you have problems to download all the dependencies with **Eclipse IDE**.
 - Install Maven dependencies.
 - Use `mvn clean javafx:run` to run in localhost.
-- Use `mvn clean javafx:jlink` to generate a executable on the `/target` folder (read the docs of the plugin if you aren't sure).
+- Use `mvn clean javafx:jlink` to generate an executable on the `/target` folder (read the docs of the plugin if you aren't sure).
 
 ## How to play?
 - Use left-click to place a green cell (alive), you can use patterns form [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
