@@ -5,8 +5,9 @@ A small simulator of the [Conway's Game](https://en.wikipedia.org/wiki/Conway%27
 
 ## Technologies :fire:
 
-- [JavaFX 21.0.3](https://openjfx.io/) - as GUI
-- [Maven 3.9.6](https://maven.apache.org) - as a template
+- Java SDK 21.
+- [JavaFX 21.0.3](https://openjfx.io/) - as GUI.
+- [Maven 3.9.6](https://maven.apache.org) - as a template.
 
 ## Run it! :rocket:
 First, this app uses this [Maven plugin](https://github.com/openjfx/javafx-maven-plugin) to manage all related to JavaFX:
